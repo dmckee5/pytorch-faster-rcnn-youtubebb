@@ -13,6 +13,7 @@ from __future__ import print_function
 __sets = {}
 from datasets.pascal_voc import pascal_voc
 from datasets.coco import coco
+from datasets.youtubebb import youtubebb
 
 import numpy as np
 
@@ -38,6 +39,12 @@ for year in ['2015']:
   for split in ['test', 'test-dev']:
     name = 'coco_{}_{}'.format(year, split)
     __sets[name] = (lambda split=split, year=year: coco(split, year))
+
+# Set up youtubebb_<year>_<split> using selective search "fast" mode
+for year in ['2017']:
+    for split in ['train', 'val', 'trainval', 'test']:
+        name = 'youtubebb_{}_{}'.format(year, split)
+        __sets[name] = (lambda split=split, year=year: youtubebb(split, year))
 
 
 def get_imdb(name):
