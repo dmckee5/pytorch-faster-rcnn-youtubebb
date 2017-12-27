@@ -14,6 +14,7 @@ __sets = {}
 from datasets.pascal_voc import pascal_voc
 from datasets.coco import coco
 from datasets.youtubebb import youtubebb
+from datasets.coco23 import coco23
 
 import numpy as np
 
@@ -39,6 +40,12 @@ for year in ['2015']:
   for split in ['test', 'test-dev']:
     name = 'coco_{}_{}'.format(year, split)
     __sets[name] = (lambda split=split, year=year: coco(split, year))
+
+# Set up coco23_2014_<split>
+for year in ['2014']:
+  for split in ['train', 'val', 'minival', 'valminusminival', 'trainval']:
+    name = 'coco23_{}_{}'.format(year, split)
+    __sets[name] = (lambda split=split, year=year: coco23(split, year))
 
 # Set up youtubebb_<year>_<split> using selective search "fast" mode
 for year in ['2017']:
