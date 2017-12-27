@@ -117,6 +117,7 @@ class youtubebb(imdb):
             return roidb
 
 #        print("image index length: " + str(len(self._image_index)))
+        print("Loading ground-truth roidb annotations")
         gt_roidb = [self._load_pascal_annotation(index)
                     for index in self.image_index]
         with open(cache_file, 'wb') as fid:
@@ -254,7 +255,7 @@ class youtubebb(imdb):
                 use_07_metric=use_07_metric, use_diff=self.config['use_diff'])
             aps += [ap]
             print('AP for {} = {:.4f}'.format(cls, ap))
-            with open(os.path.join(output_dir, cls + '_pr.pkl'), 'w') as f:
+            with open(os.path.join(output_dir, cls + '_pr.pkl'), 'wb') as f:
                 pickle.dump({'rec': rec, 'prec': prec, 'ap': ap}, f)
         print('Mean AP = {:.4f}'.format(np.mean(aps)))
         print('~~~~~~~~')
