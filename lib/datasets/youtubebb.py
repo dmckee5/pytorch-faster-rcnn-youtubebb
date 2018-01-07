@@ -238,32 +238,55 @@ class youtubebb(imdb):
             'Main',
             self._image_set + '.txt')
         cachedir = os.path.join(self._devkit_path, 'annotations_cache')
-        aps = []
-        # The PASCAL VOC metric changed in 2010.
-        # The Youtube Bounding Box converter uses the 2007 format, so we
-        # establish that here.
-        use_07_metric = True
-        print('VOC07 metric? ' + ('Yes' if use_07_metric else 'No'))
-        if not os.path.isdir(output_dir):
-            os.mkdir(output_dir)
-        for i, cls in enumerate(self._classes):
-            if cls == '__background__':
-                continue
-            filename = self._get_voc_results_file_template().format(cls)
-            rec, prec, ap = voc_eval(
-                filename, annopath, imagesetfile, cls, cachedir, ovthresh=0.5,
-                use_07_metric=use_07_metric, use_diff=self.config['use_diff'])
-            aps += [ap]
-            print('AP for {} = {:.4f}'.format(cls, ap))
-            with open(os.path.join(output_dir, cls + '_pr.pkl'), 'wb') as f:
-                pickle.dump({'rec': rec, 'prec': prec, 'ap': ap}, f)
-        print('Mean AP = {:.4f}'.format(np.mean(aps)))
+
+        num_iou_thresholds = 10
+        sum_aps = np.zeros(len(self._classes)-1) # minus 1 for background
+        for iou_thresh in np.linspace(.5, 0.95, num_iou_thresholds, endpoint=True):
+            print('Using overlap threshold {:.6f}'.format(iou_thresh))
+            aps = []
+            # The PASCAL VOC metric changed in 2010.
+            # The Youtube Bounding Box converter uses the 2007 format, so we
+            # establish that here.
+            use_07_metric = True
+            print('VOC07 metric? ' + ('Yes' if use_07_metric else 'No'))
+            if not os.path.isdir(output_dir):
+                os.mkdir(output_dir)
+            for i, cls in enumerate(self._classes):
+                if cls == '__background__':
+                    continue
+                filename = self._get_voc_results_file_template().format(cls)
+                rec, prec, ap = voc_eval(
+                    filename, annopath, imagesetfile, cls, cachedir, ovthresh=iou_thresh,
+                    use_07_metric=use_07_metric, use_diff=self.config['use_diff'])
+                aps += [ap]
+                print('AP for {} = {:.4f}'.format(cls, ap))
+                with open(os.path.join(output_dir, cls + '_pr.pkl'), 'wb') as f:
+                    pickle.dump({'rec': rec, 'prec': prec, 'ap': ap}, f)
+            sum_aps += np.asarray(aps)
+            print('Mean AP = {:.4f}'.format(np.mean(aps)))
+            print('~~~~~~~~')
+            print('Results:')
+            for ap in aps:
+                print('{:.3f}'.format(ap))
+            print('{:.3f}'.format(np.mean(aps)))
+            print('~~~~~~~~')
+            print('')
+            print('')
+
+        # print mAP across iou thresholds
+        print('Evaluating AP values averaged across all IoU thresholds')
+        iou_avg_aps = sum_aps/float(num_iou_thresholds)
+        classes_without_background = [cls for cls in self._classes if cls != '__background__']
+        for i, cls in enumerate(classes_without_background):
+            print('AP for {} = {:.4f}'.format(cls, iou_avg_aps[i]))
+        print('Mean AP = {:.4f}'.format(np.mean(iou_avg_aps)))
         print('~~~~~~~~')
         print('Results:')
-        for ap in aps:
+        for ap in iou_avg_aps:
             print('{:.3f}'.format(ap))
-        print('{:.3f}'.format(np.mean(aps)))
+        print('{:.3f}'.format(np.mean(iou_avg_aps)))
         print('~~~~~~~~')
+
         print('')
         print('--------------------------------------------------------------')
         print('Results computed with the **unofficial** Python eval code.')
