@@ -16,6 +16,7 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+import PIL
 from datasets.imdb import imdb
 import datasets.ds_utils as ds_utils
 import xml.etree.ElementTree as ET
@@ -25,6 +26,7 @@ import scipy.io as sio
 import pickle
 import subprocess
 import uuid
+import multiprocessing
 from .voc_eval import voc_eval
 from model.config import cfg
 
@@ -329,6 +331,51 @@ class youtubebb(imdb):
         else:
             self.config['use_salt'] = True
             self.config['cleanup'] = True
+
+    # def get_ind_video_width(self, i):
+    #     return PIL.Image.open(self.image_path_at(i)).size[0]
+
+    # def _get_widths(self):
+    #     num_threads = cfg.PREPROCESSING_THREADS
+    #     print("Using thread pool of size " + str(num_threads))
+    #     pool = multiprocessing.Pool(num_threads)
+    #     return pool.map(self.get_ind_video_width, range(self.num_images))
+    #     # return [PIL.Image.open(self.image_path_at(i)).size[0]
+    #     #         for i in range(self.num_images)]
+
+    def _get_widths(self):
+        sizes = self.get_img_size_dict()
+        return [sizes[self.image_path_at(i)][0]  # 0 index of size tuple is width
+                for i in range(self.num_images)]
+
+    def get_img_size_dict(self):
+        num_threads = cfg.PREPROCESSING_THREADS
+
+        cache_size_dir = os.path.join(self.cache_path, 'image_sizes')
+        file_name = self.name + '_sizes.pkl'
+        cache_size_file = os.path.join(cache_size_dir, file_name)
+        if not os.path.exists(cache_size_file):
+            print('Cached image size file not found for ' + self.name)
+            if not os.path.exists(cache_size_dir):
+                os.makedirs(cache_size_dir)
+
+            print("Using thread pool of size %d to read image dimensions" % num_threads)
+            pool = multiprocessing.Pool(num_threads)
+            sizes = dict(pool.map(self.get_ind_video_name_size, range(self.num_images)))
+            print('Saving image size cache file...')
+
+            with open(cache_size_file, "wb") as f:
+                pickle.dump(sizes, f)
+
+        else:
+            print('Loading cached image size file for ' + self.name)
+            with open(cache_size_file, "rb") as f:
+                sizes = pickle.load(f)
+        return sizes
+
+    def get_ind_video_name_size(self, i):
+        return self.image_path_at(i), PIL.Image.open(self.image_path_at(i)).size
+
 
 if __name__ == '__main__':
     from datasets.youtubebb import youtubebb

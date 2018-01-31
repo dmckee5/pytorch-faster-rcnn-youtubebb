@@ -51,21 +51,27 @@ class SolverWrapper(object):
       os.makedirs(self.tbvaldir)
     self.pretrained_model = pretrained_model
 
-  def snapshot(self, iter):
+  def snapshot(self, iter, keep_snapshot=False):
     net = self.net
 
     if not os.path.exists(self.output_dir):
       os.makedirs(self.output_dir)
 
+    # only a limited number of snapshots given by TRAN.SNAPSHOT_KEPT are kept in output directory
+    # so we make a subdirectory to save snapshots at key points so that they are not deleted
+    snapshots_to_keep_dir = os.path.join(self.output_dir, "snapshots_to_keep")
+    if not os.path.exists(snapshots_to_keep_dir):
+      os.makedirs(snapshots_to_keep_dir)
+
     # Store the model snapshot
     filename = cfg.TRAIN.SNAPSHOT_PREFIX + '_iter_{:d}'.format(iter) + '.pth'
-    filename = os.path.join(self.output_dir, filename)
+    filename = os.path.join(snapshots_to_keep_dir if keep_snapshot else self.output_dir, filename)
     torch.save(self.net.state_dict(), filename)
     print('Wrote snapshot to: {:s}'.format(filename))
 
     # Also store some meta information, random state, etc.
     nfilename = cfg.TRAIN.SNAPSHOT_PREFIX + '_iter_{:d}'.format(iter) + '.pkl'
-    nfilename = os.path.join(self.output_dir, nfilename)
+    nfilename = os.path.join(snapshots_to_keep_dir if keep_snapshot else self.output_dir, nfilename)
     # current state of numpy random
     st0 = np.random.get_state()
     # current position in the database
@@ -239,7 +245,7 @@ class SolverWrapper(object):
       # Learning rate
       if iter == next_stepsize + 1:
         # Add snapshot here before reducing the learning rate
-        self.snapshot(iter)
+        self.snapshot(iter, keep_snapshot=True)
         lr *= cfg.TRAIN.GAMMA
         scale_lr(self.optimizer, cfg.TRAIN.GAMMA)
         next_stepsize = stepsizes.pop()

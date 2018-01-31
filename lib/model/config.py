@@ -284,6 +284,11 @@ __C.ANCHOR_RATIOS = [0.5,1,2]
 # Number of filters for the RPN layer
 __C.RPN_CHANNELS = 512
 
+# Reordered output region classification indicies
+__C.CLASS_INDICES = 'default'
+
+# Number of threads used in preprocessing steps
+__C.PREPROCESSING_THREADS = 2
 
 def get_output_dir(imdb, weights_filename):
   """Return the directory where experimental artifacts are placed.

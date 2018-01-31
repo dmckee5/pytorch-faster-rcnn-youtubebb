@@ -19,6 +19,7 @@ import scipy.io as sio
 import pickle
 import json
 import uuid
+import copy
 # COCO API
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
@@ -31,11 +32,18 @@ class coco23(imdb):
     self.config = {'use_salt': True,
                    'cleanup': True}
 
-    # Coco 23 class subset names
-    self.coco23_cat_names = ['person','bicycle','car','motorcycle','airplane','bus',
-                        'train','truck','boat','bird','cat','dog','horse','cow',
-                        'elephant','bear','zebra','giraffe','umbrella','skateboard',
-                        'knife','potted plant','toilet']
+    # # Coco 23 class subset names
+    # self.coco23_cat_names = ['person','bicycle','car','motorcycle','airplane','bus',
+    #                     'train','truck','boat','bird','cat','dog','horse','cow',
+    #                     'elephant','bear','zebra','giraffe','umbrella','skateboard',
+    #                     'knife','potted plant','toilet']
+
+    # youtubebb class ordering
+    self.coco23_cat_names = ['person', 'bird', 'bicycle', 'boat', 'bus',
+                     'bear', 'cow', 'cat', 'giraffe', 'potted plant',
+                     'horse', 'motorcycle', 'knife', 'airplane',
+                     'skateboard', 'train', 'truck', 'zebra', 'toilet',
+                     'dog', 'elephant', 'umbrella', 'car']
 
     # name, paths
     self._year = year
@@ -45,13 +53,14 @@ class coco23(imdb):
     self._COCO = COCO(self._get_ann_file())
 
     # We load only the 23 ytbb categories
-    #cats = self._COCO.loadCats(self._COCO.getCatIds())
     print("List of ids of 23 coco categories:")
-    print(self._COCO.getCatIds(catNms=self.coco23_cat_names))
-    cats = self._COCO.loadCats(self._COCO.getCatIds(catNms=self.coco23_cat_names))
+    # self._coco23_cat_ids = self._COCO.getCatIds(catNms=self.coco23_cat_names)
+    self._coco23_cat_ids = [ self._COCO.getCatIds(catNms=[cat_name])[0] for cat_name in self.coco23_cat_names ]
+    print(self._coco23_cat_ids)
+
+    cats = self._COCO.loadCats(self._coco23_cat_ids)
 
     assert(len(cats)==23)
-    self._coco23_cat_ids = self._COCO.getCatIds(catNms=self.coco23_cat_names)
 
     self._classes = tuple(['__background__'] + [c['name'] for c in cats])
     self._class_to_ind = dict(list(zip(self.classes, list(range(self.num_classes)))))
@@ -91,11 +100,19 @@ class coco23(imdb):
 
     print("cat names to load img index: " )
     print (self.coco23_cat_names)
-    cat_ids = self._COCO.getCatIds(catNms=self.coco23_cat_names)
-    print(cat_ids)
-    image_ids = self._COCO.getImgIds(catIds=cat_ids)
+    print(self._coco23_cat_ids)
+
+    # image_ids_1 = self._COCO.getImgIdsOr(catIds=cat_ids)
+    # print(len(image_ids_1))
+
+    image_ids = set()
+    for cat_id in self._coco23_cat_ids:
+      image_ids |= set(self._COCO.getImgIds(catIds=[cat_id]))
+
     print(len(image_ids))
-    return image_ids
+
+    # assert(set(image_ids_1)==image_ids)
+    return list(image_ids)
 
   def _get_widths(self):
     anns = self._COCO.loadImgs(self._image_index)
@@ -273,6 +290,10 @@ class coco23(imdb):
     coco_dt = self._COCO.loadRes(res_file)
     coco_eval = COCOeval(self._COCO, coco_dt)
     coco_eval.params.useSegm = (ann_type == 'segm')
+
+    # limit evaluation to 23 selected classes
+    coco_eval.params.catIds = copy.copy(self._coco23_cat_ids)
+
     coco_eval.evaluate()
     coco_eval.accumulate()
     self._print_detection_eval_metrics(coco_eval)

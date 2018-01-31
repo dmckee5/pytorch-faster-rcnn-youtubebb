@@ -108,6 +108,7 @@ class imdb(object):
 
   def append_flipped_images(self):
     num_images = self.num_images
+    print("Find widths of images")
     widths = self._get_widths()
     for i in range(num_images):
       boxes = self.roidb[i]['boxes'].copy()
@@ -121,6 +122,22 @@ class imdb(object):
                'gt_classes': self.roidb[i]['gt_classes'],
                'flipped': True}
       self.roidb.append(entry)
+    #   if not (boxes[:, 2] >= boxes[:, 0]).all():
+    #     print("ASSERTION FAILED")
+    #     print("current image index: " + str(i) + " of " + str(self.num_images))
+    #     print("image file: " + str(self.image_path_at(i)))
+    #     print(widths[i])
+    #     print(self.roidb[i]['boxes'])
+    #     print(boxes)
+    #     print()
+    #     number_failed_image_flips += 1
+    #   else:
+    #       entry = {'boxes': boxes,
+    #                'gt_overlaps': self.roidb[i]['gt_overlaps'],
+    #                'gt_classes': self.roidb[i]['gt_classes'],
+    #                'flipped': True}
+    #       self.roidb.append(entry)
+    # print("Failed to flip " + str(number_failed_image_flips) + " video frames")
     self._image_index = self._image_index * 2
 
   def evaluate_recall(self, candidate_boxes=None, thresholds=None,
