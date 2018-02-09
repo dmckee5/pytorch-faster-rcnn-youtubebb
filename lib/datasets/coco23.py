@@ -26,7 +26,7 @@ from pycocotools.cocoeval import COCOeval
 from pycocotools import mask as COCOmask
 
 class coco23(imdb):
-  def __init__(self, image_set, year):
+  def __init__(self, image_set, year, use_adapted=False, adapted_instance_id=None):
     imdb.__init__(self, 'coco23_' + year + '_' + image_set)
     # COCO specific config options
     self.config = {'use_salt': True,
@@ -48,7 +48,15 @@ class coco23(imdb):
     # name, paths
     self._year = year
     self._image_set = image_set
-    self._data_path = osp.join(cfg.DATA_DIR, 'coco')
+    
+    if cfg.USE_ADAPTED_DATASET:
+        self._data_path = osp.join(cfg.DATA_DIR, 'coco_adapted', cfg.ADAPTED_DATASET_INSTANCE)
+        print('Using adapted Coco dataset from: %s ' % self._data_path)
+    elif use_adapted:
+        self._data_path = osp.join(cfg.DATA_DIR, 'coco_adapted', adapted_instance_id)
+        print('Using adapted Coco dataset from: %s ' % self._data_path)
+    else:
+        self._data_path = osp.join(cfg.DATA_DIR, 'coco')
     # load COCO API, classes, class <-> id mappings
     self._COCO = COCO(self._get_ann_file())
 
@@ -60,7 +68,7 @@ class coco23(imdb):
 
     cats = self._COCO.loadCats(self._coco23_cat_ids)
 
-    assert(len(cats)==23)
+    assert(len(cats) == 23)
 
     self._classes = tuple(['__background__'] + [c['name'] for c in cats])
     self._class_to_ind = dict(list(zip(self.classes, list(range(self.num_classes)))))

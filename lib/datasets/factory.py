@@ -47,6 +47,14 @@ for year in ['2014']:
     name = 'coco23_{}_{}'.format(year, split)
     __sets[name] = (lambda split=split, year=year: coco23(split, year))
 
+# Set up coco23_adapted_2014_<split>_<instance_id>
+for year in ['2014']:
+  for split in ['train', 'val', 'minival', 'valminusminival', 'trainval']:
+    for instance_id in ['instance_2018-01-20-22-02-18', 'instance_2018-01-20-22-02-44']:
+      name = 'coco23_adapted_{}_{}_{}'.format(year, split, instance_id)
+      __sets[name] = (lambda split=split, year=year,
+                             instance_id=instance_id: coco23(split, year, use_adapted=True, adapted_instance_id=instance_id))
+
 # Set up youtubebb_<year>_<split> using selective search "fast" mode
 for year in ['2017']:
     for split in ['train', 'val', 'trainval', 'test']:

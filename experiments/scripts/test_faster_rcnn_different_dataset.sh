@@ -47,7 +47,7 @@ case ${TRAIN_DATASET} in
   youtubebb)
     TRAIN_IMDB="youtubebb_2017_train"
 #    TEST_IMDB="youtubebb_2017_test"
-    ITERS=490000 #1250000
+    ITERS=1250000
     ANCHORS="[4,8,16,32]"
     RATIOS="[0.5,1,2]"
     ;;
@@ -69,6 +69,12 @@ case ${TEST_DATASET} in
     ;;
   coco23)
     TEST_IMDB="coco23_2014_minival"
+    ;;
+  coco23_adapted_instance_2018-01-20-22-02-44)
+    TEST_IMDB="coco23_adapted_2014_minival_instance_2018-01-20-22-02-44"
+    ;;
+  coco23_adapted_instance_2018-01-20-22-02-18)
+    TEST_IMDB="coco23_adapted_2014_minival_instance_2018-01-20-22-02-18"
     ;;
   youtubebb)
     TEST_IMDB="youtubebb_2017_test"

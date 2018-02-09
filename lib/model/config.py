@@ -290,6 +290,13 @@ __C.CLASS_INDICES = 'default'
 # Number of threads used in preprocessing steps
 __C.PREPROCESSING_THREADS = 2
 
+# For testing domain adapted Coco and YTBB models
+__C.USE_ADAPTED_DATASET = False
+
+# Identifier for the adapted dataset version
+__C.ADAPTED_DATASET_INSTANCE = 'default'
+
+
 def get_output_dir(imdb, weights_filename):
   """Return the directory where experimental artifacts are placed.
   If the directory does not exist, it is created.
