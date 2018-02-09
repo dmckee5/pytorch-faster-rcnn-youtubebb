@@ -46,7 +46,7 @@ case ${DATASET} in
   youtubebb)
     TRAIN_IMDB="youtubebb_2017_train"
     TEST_IMDB="youtubebb_2017_test"
-    ITERS=165000
+    ITERS=1250000 #490000
     ANCHORS="[4,8,16,32]"
     RATIOS="[0.5,1,2]"
     ;;
@@ -59,6 +59,7 @@ esac
 LOG="experiments/logs/test_${NET}_${TRAIN_IMDB}_${EXTRA_ARGS_SLUG}.txt.`date +'%Y-%m-%d_%H-%M-%S'`"
 exec &> >(tee -a "$LOG")
 echo Logging output to "$LOG"
+echo "Running on `hostname`"
 
 set +x
 if [[ ! -z  ${EXTRA_ARGS_SLUG}  ]]; then

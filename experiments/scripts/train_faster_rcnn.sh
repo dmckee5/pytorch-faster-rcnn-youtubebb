@@ -64,6 +64,7 @@ esac
 LOG="experiments/logs/${NET}_${TRAIN_IMDB}_${EXTRA_ARGS_SLUG}_${NET}.txt.`date +'%Y-%m-%d_%H-%M-%S'`"
 exec &> >(tee -a "$LOG")
 echo Logging output to "$LOG"
+echo "Running on `hostname`"
 
 set +x
 if [[ ! -z  ${EXTRA_ARGS_SLUG}  ]]; then
