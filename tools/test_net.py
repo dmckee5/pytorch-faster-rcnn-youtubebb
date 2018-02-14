@@ -34,6 +34,9 @@ def parse_args():
   parser.add_argument('--imdb', dest='imdb_name',
             help='dataset to test',
             default='voc_2007_test', type=str)
+  parser.add_argument('--train_imdb', dest='train_imdb_name',
+            help='dataset trained on (only if testing across different dataset)',
+            default=None, type=str)
   parser.add_argument('--comp', dest='comp_mode', help='competition mode',
             action='store_true')
   parser.add_argument('--num_dets', dest='max_per_image',
@@ -77,7 +80,9 @@ if __name__ == '__main__':
   else:
     filename = os.path.splitext(os.path.basename(args.weight))[0]
 
-  tag = args.tag
+  if args.train_imdb_name:
+      tag = args.train_imdb_name + ('_default' if not args.tag else '_')
+  tag += args.tag
   tag = tag if tag else 'default'
   filename = tag + '/' + filename
 

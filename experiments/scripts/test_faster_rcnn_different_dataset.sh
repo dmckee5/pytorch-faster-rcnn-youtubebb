@@ -101,6 +101,7 @@ set -x
 if [[ ! -z  ${EXTRA_ARGS_SLUG}  ]]; then
   CUDA_VISIBLE_DEVICES=${GPU_ID} time python ./tools/test_net.py \
     --imdb ${TEST_IMDB} \
+    --train_imdb ${TRAIN_IMDB} \
     --model ${NET_FINAL} \
     --cfg experiments/cfgs/${NET}.yml \
     --tag ${EXTRA_ARGS_SLUG} \
@@ -110,6 +111,7 @@ if [[ ! -z  ${EXTRA_ARGS_SLUG}  ]]; then
 else
   CUDA_VISIBLE_DEVICES=${GPU_ID} time python ./tools/test_net.py \
     --imdb ${TEST_IMDB} \
+    --train_imdb ${TRAIN_IMDB} \
     --model ${NET_FINAL} \
     --cfg experiments/cfgs/${NET}.yml \
     --net ${NET} \
