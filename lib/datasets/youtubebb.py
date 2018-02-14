@@ -60,6 +60,9 @@ class youtubebb(imdb):
                        'use_diff': use_diff,
                        'matlab_eval': False,
                        'rpn_file': None}
+        if not self.config['cleanup']:
+            print('Results files will be saved with template: %s'
+                  % self._get_voc_results_file_template())
 
         assert os.path.exists(self._devkit_path), \
                 'youtubebbdevkit path does not exist: {}'.format(self._devkit_path)
@@ -297,6 +300,66 @@ class youtubebb(imdb):
         print('-- Thanks, The Management')
         print('--------------------------------------------------------------')
 
+
+    # use this method to output files with specifics on which detections were missed
+    def _do_python_eval_analysis(self, output_dir='output', iou_thresh=0.5):
+        annopath = os.path.join(
+            self._devkit_path,
+            'youtubebb' + self._year,
+            'Annotations',
+            '{:s}.xml')
+        imagesetfile = os.path.join(
+            self._devkit_path,
+            'youtubebb' + self._year,
+            'ImageSets',
+            'Main',
+            self._image_set + '.txt')
+        cachedir = os.path.join(self._devkit_path, 'annotations_cache')
+
+        print('Using overlap threshold {:.6f}'.format(iou_thresh))
+        aps = []
+        # The PASCAL VOC metric changed in 2010.
+        # The Youtube Bounding Box converter uses the 2007 format, so we
+        # establish that here.
+        import pdb
+        pdb.set_trace()
+
+        use_07_metric = True
+        print('VOC07 metric? ' + ('Yes' if use_07_metric else 'No'))
+        if not os.path.isdir(output_dir):
+            os.mkdir(output_dir)
+        for i, cls in enumerate(self._classes):
+            if cls == '__background__':
+                continue
+            filename = self._get_voc_results_file_template().format(cls)
+            rec, prec, ap, tpfp_dict = voc_eval(
+                filename, annopath, imagesetfile, cls, cachedir, ovthresh=iou_thresh,
+                use_07_metric=use_07_metric, use_diff=self.config['use_diff'])
+            # with open(os.path.join(output_dir, cls+str(iou_thresh).replace('.', '_')
+            #         + '_thresh_tpfp_detection_eval.pkl'), 'wb') as f:
+            aps += [ap]
+            print('AP for {} = {:.4f}'.format(cls, ap))
+            with open(os.path.join(output_dir, cls + '_' + str(iou_thresh).replace('.', '_')
+                    + '_thresh_pr.pkl'), 'wb') as f:
+                pickle.dump({'rec': rec, 'prec': prec, 'ap': ap, 'tpfp_dict': tpfp_dict}, f)
+        print('Mean AP = {:.4f}'.format(np.mean(aps)))
+        print('~~~~~~~~')
+        print('Results:')
+        for ap in aps:
+            print('{:.3f}'.format(ap))
+        print('{:.3f}'.format(np.mean(aps)))
+        print('~~~~~~~~')
+
+        print('')
+        print('--------------------------------------------------------------')
+        print('Results computed with the **unofficial** Python eval code.')
+        print('Results should be very close to the official MATLAB eval code.')
+        print('Recompute with `./tools/reval.py --matlab ...` for your paper.')
+        print('-- Thanks, The Management')
+        print('--------------------------------------------------------------')
+
+
+
     def _do_matlab_eval(self, output_dir='output'):
         print('-----------------------------------------------------')
         print('Computing results with the official MATLAB eval code.')
@@ -312,9 +375,12 @@ class youtubebb(imdb):
         print('Running:\n{}'.format(cmd))
         status = subprocess.call(cmd, shell=True)
 
-    def evaluate_detections(self, all_boxes, output_dir):
+    def evaluate_detections(self, all_boxes, output_dir, do_analysis=False):
         self._write_voc_results_file(all_boxes)
-        self._do_python_eval(output_dir)
+        if do_analysis:  # this is for getting tp/fp results for a single overlap threshold
+            self._do_python_eval_analysis(output_dir)
+        else:
+            self._do_python_eval(output_dir)
         if self.config['matlab_eval']:
             self._do_matlab_eval(output_dir)
         if self.config['cleanup']:

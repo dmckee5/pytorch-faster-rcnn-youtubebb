@@ -158,6 +158,8 @@ def voc_eval(detpath,
   tp = np.zeros(nd)
   fp = np.zeros(nd)
 
+  performance_dict = {}
+
   if BB.shape[0] > 0:
     # sort by confidence
     sorted_ind = np.argsort(-confidence)
@@ -168,6 +170,8 @@ def voc_eval(detpath,
     # go down dets and mark TPs and FPs
     for d in range(nd):
       R = class_recs[image_ids[d]]
+      if image_ids[d] not in performance_dict:
+        performance_dict[image_ids[d]] = {'TP': 0, 'FP': 0}
       bb = BB[d, :].astype(float)
       ovmax = -np.inf
       BBGT = R['bbox'].astype(float)
@@ -196,12 +200,14 @@ def voc_eval(detpath,
         if not R['difficult'][jmax]:
           if not R['det'][jmax]:
             tp[d] = 1.
+            performance_dict[image_ids[d]]['TP'] += 1
             R['det'][jmax] = 1
           else:
             fp[d] = 1.
+            performance_dict[image_ids[d]]['FP'] += 1
       else:
         fp[d] = 1.
-
+        performance_dict[image_ids[d]]['FP'] += 1
   # compute precision recall
   fp = np.cumsum(fp)
   tp = np.cumsum(tp)
@@ -211,4 +217,4 @@ def voc_eval(detpath,
   prec = tp / np.maximum(tp + fp, np.finfo(np.float64).eps)
   ap = voc_ap(rec, prec, use_07_metric)
 
-  return rec, prec, ap
+  return rec, prec, ap, performance_dict

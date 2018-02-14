@@ -61,7 +61,7 @@ def from_dets(imdb_name, output_dir, args):
     nms_dets = dets
 
   print('Evaluating detections')
-  imdb.evaluate_detections(nms_dets, output_dir)
+  imdb.evaluate_detections(nms_dets, output_dir, do_analysis=True)
 
 
 if __name__ == '__main__':
