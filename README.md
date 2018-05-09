@@ -1,3 +1,9 @@
+# Update (Daniel McKee):
+
+This repo is mostly copied from the Pytorch Faster RCNN implementation [here](https://github.com/ruotianluo/pytorch-faster-rcnn)
+
+I updated the code to train and test on the Youtube Bounding Boxes Dataset based on [this repo](https://github.com/mbuckler/py-faster-rcnn-youtubebb). I added added updates to reproduce the cross-dataset experiments in the Youtube Bounding Boxes [paper](https://research.google.com/youtube-bb/).
+
 # Important notice:
 If you used the master branch before Sep. 26 2017 and its corresponding pretrained model, **PLEASE PAY ATTENTION**:
 The old master branch in now under old_master, you can still run the code and download the pretrained model, but the pretrained model for that old master is not compatible to the current master!
